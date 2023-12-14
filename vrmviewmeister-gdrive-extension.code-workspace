@@ -1,0 +1,15 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"workbench.colorCustomizations": {
+			"activityBar.background": "#501349",
+			"titleBar.activeBackground": "#701B67",
+			"titleBar.activeForeground": "#FDF8FD"
+		},
+		"esbonio.sphinx.confDir": ""
+	}
+}
