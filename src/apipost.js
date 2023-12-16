@@ -111,10 +111,25 @@ function doPost(e) {
  * @param {Boolean} nameoverwrite wheather to overwrite by file name (normally file ID)
  */
 function saveAppData(mode, name, id, data, destinationDirId, nameoverwrite) {
-  var newsaveBody = (name, data, destinationDirId) => {
+  /**
+   * @param {String} name file name
+   * @param {String} data file data
+   * @param {String} destinationDirId destination folder id to save
+   * @param {File} ishit existing file object
+   */
+  var newsaveBody = (name, data, destinationDirId, ishit) => {
     var ret = {cd:0, msg:"", name:"", id:"", size:0, mimeType:""};
-    //---New save
-    var file = DriveApp.createFile(name, JSON.stringify(data));
+    var file = null;
+    
+    if (ishit) {
+      //---if the file already exists, overwrite.
+      file = ishit;
+      file.setContent(JSON.stringify(data));
+    }else{
+      //---New save
+      var file = DriveApp.createFile(name, JSON.stringify(data));
+    }
+    
     if (destinationDirId != "") {
       var dir = DriveApp.getFolderById(destinationDirId);
       if (dir) {
@@ -144,7 +159,6 @@ function saveAppData(mode, name, id, data, destinationDirId, nameoverwrite) {
     }
   }
   
-  
   if (ishit) {
     //---Overwrite
     if (mode == "save") {
@@ -154,11 +168,11 @@ function saveAppData(mode, name, id, data, destinationDirId, nameoverwrite) {
       ret.mimeType = ishit.getMimeType();
       ret.size = ishit.getSize();
     }else if (mode == "saveas") {
-      ret = newsaveBody(name, data, destinationDirId);
+      ret = newsaveBody(name, data, destinationDirId, ishit);
     }
   }else{
     //---New save
-    ret = newsaveBody(name, data, destinationDirId);
+    ret = newsaveBody(name, data, destinationDirId, null);
   }
   return ret;
 }
