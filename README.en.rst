@@ -180,8 +180,8 @@ Return value
     ============ ======== ===========================
     cd           Number   0=normal completion, 1=error
     msg          String   error message
-    data         Object   Contents of the following object
     name         String   file name
+    size         Number   file size
     mimeType     String   MIME type
     data         Any      file data [1]_ [2]_
     ============ ======== ===========================
@@ -250,7 +250,7 @@ parameters
     ============== ======== ===========================
     mode           String   mode name
     apikey         String   Key to execute this function
-    nameoverwrite  Any      Whether to overwrite with file name
+    nameoverwrite  Any      Whether to overwrite with file name(1=overwrite)
     extension      String   file extension
     ============== ======== ===========================
 

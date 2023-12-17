@@ -122,8 +122,8 @@ GoogleAppsScriptを使うデメリット
     ============ ======== ===========================
     項目名        型       説明
     ============ ======== ===========================
-    dirid        String   検索するフォルダID
-    dirname      String   検索するフォルダ名
+    dir.id        String   検索するフォルダID
+    dir.name      String   検索するフォルダ名
     ============ ======== ===========================
 
 戻り値
@@ -181,8 +181,8 @@ GoogleAppsScriptを使うデメリット
     ============ ======== ===========================
     cd           Number   0=正常終了, 1=エラー
     msg          String   エラーメッセージ
-    data         Object   下記オブジェクト内容
     name         String   ファイル名
+    size         Number   ファイルサイズ
     mimeType     String   MIMEタイプ
     data         Any      ファイルデータ [1]_ [2]_
     ============ ======== ===========================
@@ -251,7 +251,7 @@ VRMViewMeister用のため、対象ファイル形式は ``vvmproj,vvmmot,vvmpos
     ============= ======== ===========================
     mode          String   モード名
     apikey        String   本機能を実行するためのキー
-    nameoverwrite Any      ファイル名で上書きするかどうか
+    nameoverwrite Any      ファイル名で上書きするかどうか(1=上書きする)
     extension     String   ファイルの拡張子
     ============= ======== ===========================
 
