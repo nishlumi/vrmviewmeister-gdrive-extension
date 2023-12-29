@@ -91,6 +91,47 @@ VRMViewMeister will now be able to read and write data from and to the specified
 
 If you do not want VRMViewMeister to use Google Drive, leave this field blank. That is the only way to block users' access to Google Drive first.
 
+Update the script
+##################################
+
+To update the script, open this repository or the above GoogleAppsScript script project and copy the entire source.
+
+If you use this repository
+=================================
+
+1. open the GoogleAppsScript project on your drive
+2. copy the entire contents of **apiget.js**
+3. overwrite **apiget.gs**
+4. Copy all the contents of **apipost.js** 
+5. Overwrite **apipost.gs**
+6. Save the script project
+
+If using the original on the developer's drive
+======================================================
+
+1. Open ``vrmviewmeister-gdrive-extension`` in `share/extensions <https://drive.google.com/drive/folders/1QkWCH0GfKHIQLgbT5Ir-U-mBEKAE3AJy?usp=drive_link>`__
+2. open the GoogleAppsScript project on your drive
+3. copy all the contents of **apiget.gs**
+4. overwrite **apiget.gs** in your script project
+5. copy all the contents of **apipost.gs**
+6. Overwrite **apipost.gs** in your script project 
+7. Save the script project
+
+Next steps
+===========================================
+
+1. Open your script project. 
+2. Select ``setupTest`` from the ``Select Function to Run`` toolbar in the editor. 
+3. Run the script. 
+4. If there is no increase or decrease in the referenced service, the script will complete execution immediately and the results will be displayed.
+5. Do the steps in ``Deploy`` and ``Configure it in VRMViewMeister`` .
+
+.. note::
+   If additional scripting privileges will be added, we will let you know when the update is released.
+
+.. caution::
+   URLs issued in previous deployments will no longer be used. Please follow the steps below to stop.
+
 Stopping a published URL
 #############################
 

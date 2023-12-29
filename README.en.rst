@@ -121,8 +121,8 @@ Parameter (optional)
     ============ ======== ===========================
     Item name    Type     Description
     ============ ======== ===========================
-    dir.id       String   Folder ID to search
-    dir.name     String   Folder name to search
+    dirid       String   Folder ID to search
+    dirname     String   Folder name to search
     ============ ======== ===========================
 
 Return value
