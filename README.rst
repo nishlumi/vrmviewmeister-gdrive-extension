@@ -5,6 +5,8 @@ vrmviewmeister-gdrive-extension
 Google Drive loader for VRMViewMeister
 #############################################
 
+:version: 1.1
+
 これは GoogleAppsScriptのソースです。
 
 VRMViewMeisterからHTTP GET/POSTで呼び出して使います。
@@ -70,6 +72,50 @@ GoogleAppsScriptを使うデメリット
     
     最後に、VRMViewMeisterでウェブアプリのURLを設定していただくことになります。
 
+インデックスファイル
+=======================================
+
+ver 1.1より、ファイル一覧の読み込み高速化のため、インデックスファイルを作成するようにしました。
+対応するファイルの種類とインデックスファイル名は次の通りです。
+
+================ ================
+ファイルの種類     インデックスファイル名
+---------------- ---------------- 
+モーション        VVM_VVMMOT_INDEX.csv
+ポーズ            VVM_VVMPOSE_INDEX.csv
+プロジェクト      VVM_VVMPROJ_INDEX.csv
+VRM              VVM_VRM_INDEX.csv
+3Dモデル          VVM_3DMODEL_INDEX.csv
+画像              VVM_IMAGE_INDEX.csv
+VRMAnimation     VVM_VRMANIMATION_INDEX.csv
+================ ================
+
+``mode=enumdir`` 実行時にドライブ上にこれらのファイルが存在しない場合、対応する拡張子のファイルを走査して新しくファイル一覧を生成してCSV形式のインデックスファイルを作成します。
+2回目以降は上記インデックスファイルを参照します。
+
+VRMViewMeisterから保存可能とするモーション・ポーズ・プロジェクトファイルは、Googleドライブに保存する前にファイルの一覧を開いてインデックスファイルを生成するようにしてください。
+
+上記仕様のため、誤ってインデックスファイルを削除しても ``mode=enumdir`` でアクセスすれば再び最新のインデックスファイルが作成されるので、本アプリからファイル一覧の高速な取得を期待できます。
+
+
+CSVの内容
+----------------
+
+==== =============
+列    値
+---- -------------
+1     ファイル名
+2     ファイルの種類(mime type)  
+3     ファイルID
+4     ファイルサイズ
+5     作成日(Javascriptの Date.valueOf())
+6     更新日(Javascriptの Date.valueOf())
+7     親フォルダID
+8     親フォルダ名
+9     データ(vvmpose, vvmmotのみ JSON.stringifyの内容)
+==== =============
+
+9列目のデータは、vvmposeの場合はサムネイル、vvmmotの場合はフレーム数やオブジェクトの大きさなどの基本的な情報を格納します。それ以外は空欄です。
 
 スクリプトの設定
 =======================================
@@ -124,6 +170,7 @@ GoogleAppsScriptを使うデメリット
     ============ ======== ===========================
     dirid        String   検索するフォルダID
     dirname      String   検索するフォルダ名
+    enumetype    String   オブジェクトの種類 (vvmpose, vvmmot, vvmproj, vrm, 3dmodel, image)
     ============ ======== ===========================
 
 戻り値

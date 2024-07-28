@@ -14,6 +14,7 @@
  * @param {String} extension - File extension to open
  * 
  * mode=enumdir
+ * @param {String} enumetype - enumerate object type (pose, motion, project, vrm, 3dmodel, image)
  * @param {String} name - file name to search 
  * @param {String} extension - File extension to open
  * @param {Any} withdata - load also content (true, 1, etc...)
@@ -73,11 +74,14 @@ function doGet(e) {
   var afterdate = 0;
   var withdata = false;
   var apikey = "";
+  var enumtype = "";
   for (var obj in e.parameter) {
     if (obj == "mode") {
       mode = e.parameter[obj];
     }else if (obj == "fileid") {
       fileid = e.parameter[obj];
+    }else if (obj == "enumtype") {
+      enumtype = e.parameter[obj];
     }else if (obj == "name") {
       name = e.parameter[obj];
     }else if (obj == "extension") {
@@ -102,7 +106,7 @@ function doGet(e) {
       }
       
     }else if (mode == "enumdir") {
-      retdata = enumerateFiles({id: dirid, name:dirname}, name, ext, withdata);
+      retdata = enumerateFiles(enumtype, {id: dirid, name:dirname}, name, ext, withdata);
     }else if (mode == "confirmlast") {
       retdata = loadLastSavedFile(name, ext);
     }else{
@@ -121,6 +125,10 @@ function setupTest() {
    */
   Logger.log(DriveApp.getStorageUsed() / 1024 / 1024 / 1024);
   Logger.log(DriveApp.getStorageLimit() / 1024 / 1024 / 1024);
+  //return;
+  //var ret = enumerateFiles({id:"",name:""},"","obj,fbx,zip,gltf,glb,ply,stl,3mf");
+  //Logger.log(ret);
+  //return;
   
 }
 /**
@@ -161,7 +169,6 @@ function loadFileFromId(gid,extension) {
   }
   return ret;
 }
-
 /**
  * confirm last saved file since datevalue (mode=confirmlast)
  * @param {String} name file name to search
@@ -195,105 +202,174 @@ function loadLastSavedFile(name,extension) {
 }
 /**
  * enumerate files in folder (mode=enumdir)
+ * @param {enumtype} file type (vvmpose, vvmmot, vvmproj, vrma, vrm, 3dmodel, image)
  * @param {{id:String, name:String}} dir folder information
  * @param {String} name file name to search
  * @param {String} extension file extension to search
  * @param {Boolean} withdata load also content (ONLY json data)
  */
-function enumerateFiles(dir, name, extension, withdata) {
+function enumerateFiles(enumtype, dir, name, extension, withdata) {
   var ret = {cd:0,msg:"",data:[]};
 
   var searchString = "";
   var extarr = extension.split(",");
-  //---make search condition
-  if (name != "") {
-    searchString += "title contains '" + name + "'";
-  }else{
-    
-    var searr = [];
-    for (var i = 0; i < extarr.length; i++) {
-      searr.push("(title contains '." + extarr[i] + "')");
+  var tmp_enumtype = enumtype;
+  if (enumtype == "") {
+    //---if not found enumtype. (old version)
+    if (
+      (extension.toUpperCase().indexOf("FBX") > -1) || 
+      (extension.toUpperCase().indexOf("OBJ") > -1) ||
+      (extension.toUpperCase().indexOf("GLTF") > -1) || 
+      (extension.toUpperCase().indexOf("ZIP") > -1) ||
+      (extension.toUpperCase().indexOf("GLB") > -1) ||
+      (extension.toUpperCase().indexOf("PLY") > -1) ||
+      (extension.toUpperCase().indexOf("STL") > -1) ||
+      (extension.toUpperCase().indexOf("3MF") > -1)
+    ){
+      tmp_enumtype = "3dmodel";
+    }else if (
+      (extension.toUpperCase().indexOf("PNG") > -1) ||
+      (extension.toUpperCase().indexOf("JPG") > -1)
+    ){
+      tmp_enumtype = "image";
+    }else if (extension.toUpperCase().indexOf("VVMPOSE") > -1) {
+      tmp_enumtype = "vvmpose";
+    }else if (extension.toUpperCase().indexOf("VVMMOT") > -1) {
+      tmp_enumtype = "vvmmot";
+    }else if (extension.toUpperCase().indexOf("VVMPROJ") > -1) {
+      tmp_enumtype = "vvmproj";
+    }else if (extension.toUpperCase().indexOf("VRMA") > -1) {
+      tmp_enumtype = "vrmanimation";
+    }else if (extension.toUpperCase().indexOf("VRM") > -1) {
+      tmp_enumtype = "vrm";
     }
-    searchString = searr.join(" or ");
-    
   }
-  var files = null;
-  //---read specified folder or root folder
-  try {
-    var hitdir = null;
-    if (dir.id != "") {
-      //---By ID
-      var hitdir = DriveApp.getFolderById(dir.id);
-      files = hitdir.searchFiles(searchString);
-    }else if (dir.name != "") {
-      //---By Name
-      hitdir = DriveApp.getFoldersByName(dir.name);
-      var dir = null;
-      while (hitdir.hasNext()) {
-        dir = hitdir.next();
-        break;
+  const iFiler = new IndexFiler(tmp_enumtype, extension);
+  if (iFiler.open()) {
+    for (var i = 0; i < iFiler.data.length; i++) {
+      ret.data.push(iFiler.decodeToJSON(i));
+    }
+  }else{
+    iFiler.create();
+
+    //---make search condition
+    if (name != "") {
+      searchString += "title contains '" + name + "'";
+    }else{
+      
+      var searr = [];
+      for (var i = 0; i < extarr.length; i++) {
+        searr.push("(title contains '." + extarr[i] + "')");
       }
-      if (dir) {
-        files = dir.searchFiles(searchString);
+      searchString = searr.join(" or ");
+      
+    }
+    var files = null;
+    //---read specified folder or root folder
+    try {
+      var hitdir = null;
+      if (dir.id != "") {
+        //---By ID
+        var hitdir = DriveApp.getFolderById(dir.id);
+        files = hitdir.searchFiles(searchString);
+      }else if (dir.name != "") {
+        //---By Name
+        hitdir = DriveApp.getFoldersByName(dir.name);
+        var dir = null;
+        while (hitdir.hasNext()) {
+          dir = hitdir.next();
+          break;
+        }
+        if (dir) {
+          files = dir.searchFiles(searchString);
+        }else{
+          files = DriveApp.searchFiles(searchString);
+        }
       }else{
         files = DriveApp.searchFiles(searchString);
-      }
-    }else{
+      } 
+    }catch(e) {
+      //---From Root folder 
       files = DriveApp.searchFiles(searchString);
-    } 
-  }catch(e) {
-    //---From Root folder 
-    files = DriveApp.searchFiles(searchString);
-  }
-
-  if (files) {
-    //---Enumerate searching files.
-    while (files.hasNext()) {
-      var file = files.next();
-      var filename = file.getName();
-
-      var ishit = true;
-      if (extarr.length > 0) {
-        ishit = extarr.findIndex(v => {
-          if (filename.endsWith(v)) return true;
-          return false;
-        }) > -1;
-      }
-      if (ishit) {
-        var pardirs = file.getParents();
-        var pardir = null;
-        while (pardirs.hasNext()) {
-          pardir = pardirs.next();
-        }
-
-        //---set file meta data
-        var fitem = {
-          name : filename,
-          mimeType : file.getMimeType(),
-          id : file.getId(),
-          size : file.getSize(),
-          createDate : file.getDateCreated().valueOf(),
-          updatedDate : file.getLastUpdated().valueOf(),
-          dir : {
-            id : pardir == null ? "" : pardir.getId(),
-            name : pardir == null ? "" : pardir.getName()
-          },
-          data : ""
-        }
-        if (withdata === true) {
-          //---if withdata flag enabled, load file content.
-          fitem.data = JSON.parse(file.getBlob().getDataAsString());
-        }
-        ret.data.push(fitem);
-      }
     }
-    if (ret.data.length == 0) {
-      ret.msg = "not found file";
+
+    if (files) {
+      //---Enumerate searching files.
+      while (files.hasNext()) {
+        var file = files.next();
+        var filename = file.getName();
+
+        var ishit = true;
+        if (extarr.length > 0) {
+          ishit = extarr.findIndex(v => {
+            if (filename.endsWith(v)) return true;
+            return false;
+          }) > -1;
+        }
+        if (ishit) {
+          var pardirs = file.getParents();
+          var pardir = null;
+          while (pardirs.hasNext()) {
+            pardir = pardirs.next();
+          }
+
+          //---set file meta data
+          var fitem = {
+            name : filename,
+            mimeType : file.getMimeType(),
+            id : file.getId(),
+            size : file.getSize(),
+            createDate : file.getDateCreated().valueOf(),
+            updatedDate : file.getLastUpdated().valueOf(),
+            dir : {
+              id : pardir == null ? "" : pardir.getId(),
+              name : pardir == null ? "" : pardir.getName()
+            },
+            data : ""
+          }
+          
+          if (withdata === true) {
+            //---if withdata flag enabled, load file content.
+            fitem.data = JSON.parse(file.getBlob().getDataAsString());
+          }
+          //---for IndexFiler
+          var newinx = iFiler.append(fitem);
+          if (extension.toLowerCase() == "vvmpose") {
+            //---only necessary items
+            iFiler.data[newinx][8] = JSON.stringify({
+              thumbnail:fitem.data.thumbnail,
+              frameData: {
+                bodyHeight: fitem.data.frameData.bodyHeight
+              },
+              sampleavatar:fitem.data.sampleavatar
+            });
+          }else if (extension.toLowerCase() == "vvmmot") {            
+            //---only necessary items
+            var tmpjs = fitem.data;
+            if (typeof tmpjs == "string") tmpjs = JSON.parse(fitem.data);
+            iFiler.data[newinx][8] = JSON.stringify({
+              targetType:tmpjs.targetType,
+              version : tmpjs.version,
+              bodyHeight: tmpjs.bodyHeight,
+              frames : tmpjs.frames.map((v,i) => { 
+                return {index: v.index}
+              }),
+            });
+          }
+          
+          ret.data.push(fitem);
+        }
+      }
+      if (ret.data.length == 0) {
+        ret.msg = "not found file";
+      }
+      iFiler.save();
+    }else{
+      ret.cd = 1;
+      ret.msg = "enumerate error";
     }
-  }else{
-    ret.cd = 1;
-    ret.msg = "enumerate error";
   }
+  
   return ret;
 }
 function toISOStringWithTimezone(date) {

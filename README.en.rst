@@ -5,6 +5,8 @@ vrmviewmeister-gdrive-extension
 Google Drive loader for VRMViewMeister
 #############################################
 
+:version: 1.1
+
 This is the GoogleAppsScript source.
 
 It is used by calling it from VRMViewMeister via HTTP GET/POST.
@@ -70,6 +72,51 @@ The users themselves will have to deploy GoogleAppsScript as a web app.
     
     Finally, you will need to set the URL of the web app in VRMViewMeister.
 
+Index file
+========================================
+
+From version 1.1 onwards, index files are created to speed up loading file lists.
+
+Supported file types and index file names are as follows.
+
+================= ================
+File type Index   file name
+----------------- ----------------
+Motion            VVM_VVMMOT_INDEX.csv
+Pose              VVM_VVMPOSE_INDEX.csv
+Project           VVM_VVMPROJ_INDEX.csv
+VRM               VVM_VRM_INDEX.csv
+3D model          VVM_3DMODEL_INDEX.csv
+Image             VVM_IMAGE_INDEX.csv
+VRMAnimation      VVM_VRMANIMATION_INDEX.csv
+================= ================
+
+``mode=enumdir`` If these files do not exist on the drive when executed, it will scan files with the corresponding extensions, generate a new file list, and create an index file in CSV format.
+The above index file will be referenced from the second time onwards.
+
+For motions, poses, and project files that can be saved from VRMViewMeister, be sure to open the file list and generate an index file before saving them to Google Drive.
+
+Due to the above specifications, even if you accidentally delete the index file, the latest index file will be created again if you access it with ``mode=enumdir``, so you can expect to quickly retrieve a file list from this app.
+
+
+CSV contents
+----------------
+
+======== ===============
+Column   Value
+-------- -------------
+1        File name
+2        File type (mime type)
+3        File ID
+4        File size
+5        Creation date (Javascript Date.valueOf())
+6        Update date (Javascript Date.valueOf())
+7        Parent folder ID
+8        Parent folder name
+9        Data (vvmpose, vvmmot only: JSON.stringify contents)
+======== ===============
+
+The ninth column stores basic information such as the thumbnail for vvmpose, the number of frames, and the size of the object for vvmmot. The rest are blank.
 
 Script configuration
 =======================================
@@ -121,8 +168,9 @@ Parameter (optional)
     ============ ======== ===========================
     Item name    Type     Description
     ============ ======== ===========================
-    dirid       String   Folder ID to search
-    dirname     String   Folder name to search
+    dirid        String   Folder ID to search
+    dirname      String   Folder name to search
+    enumetype    String   Object type (vvmpose, vvmmot, vvmproj, vrm, 3dmodel, image)
     ============ ======== ===========================
 
 Return value

@@ -25,7 +25,9 @@ If you want to set it up yourself from this repository, please refer to the foll
 6. Add a script by clicking the ``+`` button in the upper right corner of the file list in the editor. 
 7. Name the file ``apipost.gs``, etc. 
 8. Copy and paste the contents of ``apipost.js`` from this repository.
-
+9. Repeat step 6.
+10. Name the file ``library.gs``.
+11. Copy and paste the contents of ``library.js`` from this repository.
 
 Allow your account to the API
 #################################
@@ -62,6 +64,20 @@ By setting a string that only you know in the form of **APIKEY** here, you can i
 6. For the value, enter any string you like. 
 7. Click ``Save Script Properties``.
 
+Next steps
+===========================================
+
+1. Open your script project. 
+2. Select ``setupTest`` from the ``Select Function to Run`` toolbar in the editor. 
+3. Run the script. 
+4. If there is no increase or decrease in the referenced service, the script will complete execution immediately and the results will be displayed.
+5. Do the steps in ``Deploy`` and ``Configure it in VRMViewMeister`` .
+
+.. note::
+   If additional scripting privileges will be added, we will let you know when the update is released.
+
+.. caution::
+   URLs issued in previous deployments will no longer be used. Please follow the steps below to stop.
 
 
 Deploy
@@ -104,7 +120,10 @@ If you use this repository
 3. overwrite **apiget.gs**
 4. Copy all the contents of **apipost.js** 
 5. Overwrite **apipost.gs**
-6. Save the script project
+6. Copy all the contents of **library.js** 
+7. Overwrite **library.gs**
+8. Save the script project
+9. Perform the deployment operation.
 
 If using the original on the developer's drive
 ======================================================
@@ -115,22 +134,11 @@ If using the original on the developer's drive
 4. overwrite **apiget.gs** in your script project
 5. copy all the contents of **apipost.gs**
 6. Overwrite **apipost.gs** in your script project 
-7. Save the script project
+7. copy all the contents of **library.gs**
+8. Overwrite **library.gs** in your script project 
+9. Save the script project
+10. Perform the deployment operation.
 
-Next steps
-===========================================
-
-1. Open your script project. 
-2. Select ``setupTest`` from the ``Select Function to Run`` toolbar in the editor. 
-3. Run the script. 
-4. If there is no increase or decrease in the referenced service, the script will complete execution immediately and the results will be displayed.
-5. Do the steps in ``Deploy`` and ``Configure it in VRMViewMeister`` .
-
-.. note::
-   If additional scripting privileges will be added, we will let you know when the update is released.
-
-.. caution::
-   URLs issued in previous deployments will no longer be used. Please follow the steps below to stop.
 
 Stopping a published URL
 #############################

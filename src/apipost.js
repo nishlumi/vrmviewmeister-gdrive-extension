@@ -15,6 +15,7 @@
  * @param {String} name file name and extension
  * @param {String} id file id to save 
  * @param {String} destination save directory id
+ * @param {Boolean} isbinary file is binary ?
  * @param {Any} data file contents
  * 
  * @return {JSON}
@@ -32,6 +33,7 @@ function doPost(e) {
   var mode = "";
   var nameoverwrite = false;
   var apikey = "";
+  var isbinary = false;
   for (var obj in e.parameter) {
     if (obj == "mode") {
       mode = e.parameter[obj].toLowerCase();
@@ -39,6 +41,8 @@ function doPost(e) {
       nameoverwrite = true;
     }else if (obj == "apikey") {
       apikey = e.parameter[obj];
+    }else if (obj == "isbinary") {
+      isbinary = e.parameter[obj];
     }
   }
   var retdata = {cd:0, msg:""}
@@ -69,7 +73,7 @@ function doPost(e) {
         if (test_param_name === true) {
           if (test_param_data === true) {
             retdata = saveAppData(mode, js.name, (test_param_id ? js.id : ""), js.data, 
-              test_param_dest ? js.destination : "", nameoverwrite);
+              test_param_dest ? js.destination : "", nameoverwrite, {isbinary: isbinary});
           }else{
             retdata.cd = 1;
             retdata.msg = "no contents to save";
@@ -109,16 +113,29 @@ function doPost(e) {
  * @param {Any} file data
  * @param {String} destination dir id to save
  * @param {Boolean} nameoverwrite wheather to overwrite by file name (normally file ID)
+ * @param {{isbinary: Boolean}} file options
  */
-function saveAppData(mode, name, id, data, destinationDirId, nameoverwrite) {
+function saveAppData(mode, name, id, data, destinationDirId, nameoverwrite, fileoption) {
+  var getFirstParent = (file) => {
+    var pardirs = file.getParents();
+    var pardir = null;
+    while (pardirs.hasNext()) {
+      pardir = pardirs.next();
+    }
+    return pardir;
+  }
   /**
    * @param {String} name file name
    * @param {String} data file data
    * @param {String} destinationDirId destination folder id to save
    * @param {File} ishit existing file object
+   * @param {{isbinary:Boolean}} file options
    */
-  var newsaveBody = (name, data, destinationDirId, ishit) => {
-    var ret = {cd:0, msg:"", name:"", id:"", size:0, mimeType:""};
+  var newsaveBody = (name, data, destinationDirId, ishit, fileoption) => {
+    var ret = {cd:0, msg:"", name:"", id:"", size:0, mimeType:"", createDate:"", updatedDate:"",
+      dir : {id: "", name:""},
+      data:""
+    };
     var file = null;
     
     if (ishit) {
@@ -127,7 +144,32 @@ function saveAppData(mode, name, id, data, destinationDirId, nameoverwrite) {
       file.setContent(JSON.stringify(data));
     }else{
       //---New save
-      var file = DriveApp.createFile(name, JSON.stringify(data));
+      var judgename = name;
+      judgename = judgename.toLocaleLowerCase();
+      //if ((judgename.endsWith(".png")) || (judgename.endsWith(".jpg"))) {
+      if (fileoption.isbinary) {
+        var bb = null;
+        if (data instanceof Array) {
+          var b8 = new Uint8Array(data);
+          bb = Utilities.newBlob(b8);
+        }else if (data instanceof Uint8Array) {
+          bb = Utilities.newBlob(data);
+        }else{
+          var oarr = [];
+          for (var o in data) {
+            oarr.push(data[o]);
+          }
+          var b8 = new Uint8Array(data)
+          bb = Utilities.newBlob(b8);
+        }
+        
+        bb.setName(name);
+        file = DriveApp.createFile(bb);
+      }else{
+        file = DriveApp.createFile(name, JSON.stringify(data));
+      }
+      
+      
     }
     
     if (destinationDirId != "") {
@@ -136,15 +178,27 @@ function saveAppData(mode, name, id, data, destinationDirId, nameoverwrite) {
         file.moveTo(dir);
       }
     }
+
+    
+    var pardir = getFirstParent(file);
     
     ret.name = file.getName();
     ret.id = file.getId();
     ret.mimeType = file.getMimeType();
     ret.size = file.getSize();
+    ret.createDate = file.getDateCreated().valueOf();
+    ret.updatedDate = file.getLastUpdated().valueOf();
+    ret.dir = {
+      id : pardir == null ? "" : pardir.getId(),
+      name : pardir == null ? "" : pardir.getName()
+    }
     return ret;
   }
+  var names = name.split(".");
+  const iFiler = new IndexFiler(names[names.length-1], names[names.length-1]);
+
   var ret = {cd:0, msg:"", name:"", id:"", size:0, mimeType:""};
-  var ishit = false;
+  var ishit = null;
   if (nameoverwrite === true) {
     var files = DriveApp.getFilesByName(name);
     while (files.hasNext()) {
@@ -156,23 +210,74 @@ function saveAppData(mode, name, id, data, destinationDirId, nameoverwrite) {
   }else{
     if (id != "") {
       ishit = DriveApp.getFileById(id);
+      
     }
   }
   
   if (ishit) {
     //---Overwrite
     if (mode == "save") {
-      ishit.setContent(JSON.stringify(data));
-      ret.name = ishit.getName();
-      ret.id = ishit.getId();
-      ret.mimeType = ishit.getMimeType();
-      ret.size = ishit.getSize();
+      if (fileoption.isbinary) {
+        ishit.setTrashed(true);
+        newsaveBody(name, data, destinationDirId, null, fileoption);
+      }else{
+        var pardir = getFirstParent(ishit);
+
+        ishit.setContent(JSON.stringify(data));
+        ret.name = ishit.getName();
+        ret.id = ishit.getId();
+        ret.mimeType = ishit.getMimeType();
+        ret.size = ishit.getSize();
+        ret.createDate = ishit.getDateCreated().valueOf();
+        ret.updatedDate = ishit.getLastUpdated().valueOf();
+        ret.dir = {
+          id : pardir == null ? "" : pardir.getId(),
+          name : pardir == null ? "" : pardir.getName()
+        }
+      }
     }else if (mode == "saveas") {
-      ret = newsaveBody(name, data, destinationDirId, ishit);
+      ret = newsaveBody(name, data, destinationDirId, ishit, fileoption);
     }
   }else{
     //---New save
-    ret = newsaveBody(name, data, destinationDirId, null);
+    ret = newsaveBody(name, data, destinationDirId, null, fileoption);
   }
+
+  //---refresh IndexFiler
+  if (name.toLowerCase().indexOf("vvmpose") > -1) {
+    //---only necessary items
+    ret.data = JSON.stringify({
+      thumbnail:data.thumbnail,
+      frameData: {
+        bodyHeight: data.frameData.bodyHeight
+      },
+      sampleavatar:data.sampleavatar
+    });
+  }else if (name.toLowerCase().indexOf("vvmmot") > -1) {
+    //---only necessary items
+    ret.data = JSON.stringify({
+      targetType:data.targetType,
+      version : data.version,
+      bodyHeight: data.bodyHeight,
+      frames : data.frames.map((v,i) => { 
+        return {index: v.index}
+      }),
+    });
+  }
+  
+  if (iFiler.open()) {
+    var ifinx = iFiler.searchById(ret.id);
+    if (ifinx > -1) {
+      //---update
+      iFiler.modify(ifinx, ret);
+    }else{
+      //---new
+      iFiler.append(ret);
+    }
+  }else{
+    iFiler.create();
+    iFiler.append(ret);
+  }
+  iFiler.save();
   return ret;
 }
