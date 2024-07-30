@@ -6,6 +6,8 @@
 
 `vrmviewmeister-gdrive-extension Install manual <https://docs.google.com/presentation/d/e/2PACX-1vQP2RstLGn82dh_FOqBfbPPBGvx9o-YQXc-3ol8Gk4_IseKrzsgs0hgAt0h4uYX2kA71ENrnI-XXbBf/pub?start=false&loop=false&delayms=3000>`__
 
+`vrmviewmeister-gdrive-extension Update manual <https://docs.google.com/presentation/d/e/2PACX-1vQg1nevQOWSsoUU2GsRYmvOuYiFYcUJRib3W3xCTaw-QTKo2T5OTFVrg-euPVVQKeeA9InbkdBUtFat/pub?start=false&loop=false&delayms=3000>`__
+
 私のGoogleドライブのフォルダにあらかじめスクリプトを用意しています。コピーしてお使いください。
  `share/extensions <https://drive.google.com/drive/folders/1QkWCH0GfKHIQLgbT5Ir-U-mBEKAE3AJy?usp=drive_link>`__
 
