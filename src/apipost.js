@@ -256,6 +256,7 @@ function saveAppData(mode, name, id, data, destinationDirId, nameoverwrite, file
   }else if (name.toLowerCase().indexOf("vvmmot") > -1) {
     //---only necessary items
     ret.data = JSON.stringify({
+      thumbnail:data.thumbnail,
       targetType:data.targetType,
       version : data.version,
       bodyHeight: data.bodyHeight,

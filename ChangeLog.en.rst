@@ -3,6 +3,11 @@ ChangeLog
 ###################
 
 
+ver 1.2
+###################
+
+* Added thumbnail information to vvmmot motion files.
+
 ver 1.1
 ###################
 

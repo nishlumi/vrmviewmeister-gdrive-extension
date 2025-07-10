@@ -348,6 +348,7 @@ function enumerateFiles(enumtype, dir, name, extension, withdata) {
             var tmpjs = fitem.data;
             if (typeof tmpjs == "string") tmpjs = JSON.parse(fitem.data);
             iFiler.data[newinx][8] = JSON.stringify({
+              thumbnail:fitem.data.thumbnail,
               targetType:tmpjs.targetType,
               version : tmpjs.version,
               bodyHeight: tmpjs.bodyHeight,
